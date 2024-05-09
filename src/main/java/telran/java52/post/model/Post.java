@@ -8,6 +8,8 @@ import java.util.Set;
 
 import javax.xml.stream.events.Comment;
 
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,7 +18,9 @@ import lombok.Setter;
 @Getter
 @EqualsAndHashCode(of = "id")
 @NoArgsConstructor
-public class Post {
+@Document(collection = "posts")
+public class Post { // part 4 entity
+	//spring data/ + mongo generate string id
 	String id;
 	@Setter
 	String title;
