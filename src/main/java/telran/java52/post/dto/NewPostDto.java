@@ -1,4 +1,4 @@
-package telran.java52.forum.dto;
+package telran.java52.post.dto;
 
 import java.util.Set;
 
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class PostAddDto {
+public class NewPostDto {
 	String title;
 	String content;
 	Set<String> tags;
