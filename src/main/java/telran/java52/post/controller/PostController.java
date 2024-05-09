@@ -24,7 +24,7 @@ import telran.java52.post.service.PostService;
 public class PostController {
 
 	final PostService postService;
-
+//!@#!#@#!
 	@PostMapping("/post/{author}")
 	public PostDto addNewPost(@PathVariable String author, @RequestBody NewPostDto newPostDto) {
 		return postService.addNewPost(author, newPostDto);
