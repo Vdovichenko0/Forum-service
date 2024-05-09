@@ -2,6 +2,7 @@ package telran.java52.post.controller;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
@@ -24,7 +26,7 @@ import telran.java52.post.service.PostService;
 public class PostController {
 
 	final PostService postService;
-//!@#!#@#!
+
 	@PostMapping("/post/{author}")
 	public PostDto addNewPost(@PathVariable String author, @RequestBody NewPostDto newPostDto) {
 		return postService.addNewPost(author, newPostDto);
@@ -52,13 +54,14 @@ public class PostController {
 	}
 
 	@PutMapping("/post/{id}/like")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void addLike(@PathVariable String id) {
 		postService.addLike(id);
 
 	}
 
 	@GetMapping("/posts/author/{author}")
-	public Iterable<PostDto> findPostByAuthor(@PathVariable String author) {
+	public Iterable<PostDto> findPostsByAuthor(@PathVariable String author) {
 		return postService.findPostsByAuthor(author);
 	}
 

@@ -17,7 +17,7 @@ public class Comment {
 	String message;
 	LocalDateTime dateCreated = LocalDateTime.now();
 	int likes;
-	
+
 	public Comment(String user, String message) {
 		this.user = user;
 		this.message = message;
@@ -26,6 +26,5 @@ public class Comment {
 	public void addLike() {
 		likes++;
 	}
-	
-}
 
+}
