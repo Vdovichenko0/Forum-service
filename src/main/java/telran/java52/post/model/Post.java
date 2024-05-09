@@ -6,8 +6,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.xml.stream.events.Comment;
-
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.EqualsAndHashCode;
@@ -19,8 +17,7 @@ import lombok.Setter;
 @EqualsAndHashCode(of = "id")
 @NoArgsConstructor
 @Document(collection = "posts")
-public class Post { // part 4 entity
-	//spring data/ + mongo generate string id
+public class Post {
 	String id;
 	@Setter
 	String title;
@@ -29,10 +26,10 @@ public class Post { // part 4 entity
 	@Setter
 	String author;
 	LocalDateTime dateCreated = LocalDateTime.now();
-	Set<String> tags = new HashSet<String>();
+	Set<String> tags = new HashSet<>();
 	int likes;
 	List<Comment> comments = new ArrayList<>();
-	
+
 	public Post(String title, String content, String author, Set<String> tags) {
 		this.title = title;
 		this.content = content;
@@ -43,7 +40,7 @@ public class Post { // part 4 entity
 	public void addLike() {
 		likes++;
 	}
-	//inkopsylachia
+
 	public boolean addTag(String tag) {
 		return tags.add(tag);
 	}
@@ -59,5 +56,5 @@ public class Post { // part 4 entity
 	public boolean removeComment(Comment comment) {
 		return comments.remove(comment);
 	}
-	
+
 }

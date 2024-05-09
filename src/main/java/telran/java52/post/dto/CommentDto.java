@@ -7,13 +7,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
 @Builder
 public class CommentDto {
-	 String user;
-     String message;
-     LocalDateTime dateCreated;
-     Integer likes;
+	String user;
+    String message;
+    LocalDateTime dateCreated;
+    Integer likes;
 }

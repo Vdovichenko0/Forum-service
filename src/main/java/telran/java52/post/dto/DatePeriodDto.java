@@ -6,6 +6,6 @@ import lombok.Getter;
 
 @Getter
 public class DatePeriodDto {
-	 LocalDate dateFrom;
-     LocalDate dateTo;
+	LocalDate dateFrom;
+    LocalDate dateTo;
 }
