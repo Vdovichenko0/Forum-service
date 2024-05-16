@@ -1,9 +1,7 @@
 package telran.java52.post.service;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -81,33 +79,26 @@ public class PostServiceImpl implements PostService {
         postRepository.save(post);
 
 	}
-	
+
 	@Override
 	public Iterable<PostDto> findPostsByAuthor(String author) {
-		List<Post> postsByAuthor = postRepository.findByAuthor(author);
-		return postsByAuthor.stream()
-							.map(a -> modelMapper.map(a, PostDto.class))
-							.collect(Collectors.toList());
+		return postRepository.findByAuthorIgnoreCase(author)
+				.map(p -> modelMapper.map(p, PostDto.class))
+				.toList();
 	}
 
 	@Override
-    public Iterable<PostDto> findPostsByTags(List<String> tags) {
-        List<Post> posts = postRepository.findByTagsIn(tags);
-        System.out.println(posts);//[] /[telran.java52.post.model.Post@40aa0ab9]
-        System.out.println(tags);//[Python, Java]
-        return posts.stream()
-                .map(post -> modelMapper.map(post, PostDto.class))
-                .collect(Collectors.toList());
-    }
+	public Iterable<PostDto> findPostsByTags(List<String> tags) {
+		return postRepository.findByTagsInIgnoreCase(tags)
+				.map(p -> modelMapper.map(p, PostDto.class))
+				.toList();
+	}
 
 	@Override
 	public Iterable<PostDto> findPostsByPeriod(DatePeriodDto datePeriodDto) {
-		LocalDate dateFrom = datePeriodDto.getDateFrom();
-        LocalDate dateTo = datePeriodDto.getDateTo();
-        List<Post> postsInPeriod = postRepository.findByDateCreatedBetween(dateFrom, dateTo);
-        return postsInPeriod.stream()
-                .map(post -> modelMapper.map(post, PostDto.class))
-                .collect(Collectors.toList());
+		return postRepository.findByDateCreatedBetween(datePeriodDto.getDateFrom(), datePeriodDto.getDateTo())
+				.map(p -> modelMapper.map(p, PostDto.class))
+				.toList();
 	}
 
 }
