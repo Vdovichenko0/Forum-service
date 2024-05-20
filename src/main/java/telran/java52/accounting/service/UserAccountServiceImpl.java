@@ -1,6 +1,5 @@
 package telran.java52.accounting.service;
 
-import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -11,70 +10,71 @@ import telran.java52.accounting.dto.RolesDto;
 import telran.java52.accounting.dto.UserDto;
 import telran.java52.accounting.dto.UserEditDto;
 import telran.java52.accounting.dto.UserRegisterDto;
-import telran.java52.accounting.dto.exceptions.UserAccountNotFoundException;
+import telran.java52.accounting.dto.exceptions.UserExistsException;
+import telran.java52.accounting.dto.exceptions.UserNotFoundException;
 import telran.java52.accounting.model.UserAccount;
 
 @Service
 @RequiredArgsConstructor
 public class UserAccountServiceImpl implements UserAccountService {
-
-	final ModelMapper modelMapper;
+	
 	final UserAccountRepository userAccountRepository;
+	final ModelMapper modelMapper;
 
 	@Override
 	public UserDto register(UserRegisterDto userRegisterDto) {
+		if (userAccountRepository.existsById(userRegisterDto.getLogin())) {
+			throw new UserExistsException();
+		}
 		UserAccount userAccount = modelMapper.map(userRegisterDto, UserAccount.class);
 		userAccountRepository.save(userAccount);
 		return modelMapper.map(userAccount, UserDto.class);
 	}
 
-	@Override ///////////////////////////////
+	@Override
 	public UserDto getUser(String login) {
-		UserAccount userAccount = userAccountRepository.findById(login).orElseThrow(UserAccountNotFoundException::new);
+		UserAccount userAccount = userAccountRepository.findById(login).orElseThrow(UserNotFoundException::new);
 		return modelMapper.map(userAccount, UserDto.class);
 	}
 
 	@Override
 	public UserDto removeUser(String login) {
-		UserAccount userAccount = userAccountRepository.findById(login).orElseThrow(UserAccountNotFoundException::new);
+		UserAccount userAccount = userAccountRepository.findById(login).orElseThrow(UserNotFoundException::new);
 		userAccountRepository.delete(userAccount);
 		return modelMapper.map(userAccount, UserDto.class);
 	}
 
 	@Override
 	public UserDto updateUser(String login, UserEditDto userEditDto) {
-		UserAccount userAccount = userAccountRepository.findById(login).orElseThrow(UserAccountNotFoundException::new);
-		String firstName = userEditDto.getFirstName();
-		if (firstName != null) {
-			userAccount.setFirstName(firstName);
+		UserAccount userAccount = userAccountRepository.findById(login).orElseThrow(UserNotFoundException::new);
+		if (userEditDto.getFirstName() != null) {
+			userAccount.setFirstName(userEditDto.getFirstName());
 		}
-		String lastName = userEditDto.getLastName();
-		if (lastName != null) {
-			userAccount.setLastName(lastName);
+		if (userEditDto.getLastName() != null) {
+			userAccount.setLastName(userEditDto.getLastName());
 		}
-		userAccount = userAccountRepository.save(userAccount);
+		userAccountRepository.save(userAccount);
 		return modelMapper.map(userAccount, UserDto.class);
 	}
 
 	@Override
 	public RolesDto changeRolesList(String login, String role, boolean isAddRole) {
-		UserAccount userAccount = userAccountRepository.findById(login).orElseThrow(UserAccountNotFoundException::new);
-
+		UserAccount userAccount = userAccountRepository.findById(login).orElseThrow(UserNotFoundException::new);
+		boolean res;
 		if (isAddRole) {
-			userAccount.addRole(role);
+			res = userAccount.addRole(role);
 		} else {
-			userAccount.removeRole(role);
+			res = userAccount.removeRole(role);
 		}
-
-		userAccountRepository.save(userAccount);
-
-		return RolesDto.builder().login(userAccount.getLogin())
-				.roles(userAccount.getRoles().stream().map(Enum::name).collect(Collectors.toSet())).build();
+		if(res) {
+			userAccountRepository.save(userAccount);
+		}
+		return modelMapper.map(userAccount, RolesDto.class);
 	}
 
-	@Override ////////////////////////////
+	@Override
 	public void changePassword(String login, String newPassword) {
-		UserAccount userAccount = userAccountRepository.findById(login).orElseThrow(UserAccountNotFoundException::new);
+		UserAccount userAccount = userAccountRepository.findById(login).orElseThrow(UserNotFoundException::new);
 		userAccount.setPassword(newPassword);
 		userAccountRepository.save(userAccount);
 
