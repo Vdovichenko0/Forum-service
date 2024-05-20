@@ -1,6 +1,6 @@
 package telran.java52.accounting.service;
 
-
+import org.mindrot.jbcrypt.BCrypt;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -10,6 +10,7 @@ import telran.java52.accounting.dto.RolesDto;
 import telran.java52.accounting.dto.UserDto;
 import telran.java52.accounting.dto.UserEditDto;
 import telran.java52.accounting.dto.UserRegisterDto;
+import telran.java52.accounting.dto.exceptions.IncorrectRoleException;
 import telran.java52.accounting.dto.exceptions.UserExistsException;
 import telran.java52.accounting.dto.exceptions.UserNotFoundException;
 import telran.java52.accounting.model.UserAccount;
@@ -17,7 +18,7 @@ import telran.java52.accounting.model.UserAccount;
 @Service
 @RequiredArgsConstructor
 public class UserAccountServiceImpl implements UserAccountService {
-	
+
 	final UserAccountRepository userAccountRepository;
 	final ModelMapper modelMapper;
 
@@ -27,6 +28,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 			throw new UserExistsException();
 		}
 		UserAccount userAccount = modelMapper.map(userRegisterDto, UserAccount.class);
+		// generate crypt password
+		String password = BCrypt.hashpw(userRegisterDto.getPassword(), BCrypt.gensalt());
+		userAccount.setPassword(password);
 		userAccountRepository.save(userAccount);
 		return modelMapper.map(userAccount, UserDto.class);
 	}
@@ -61,12 +65,16 @@ public class UserAccountServiceImpl implements UserAccountService {
 	public RolesDto changeRolesList(String login, String role, boolean isAddRole) {
 		UserAccount userAccount = userAccountRepository.findById(login).orElseThrow(UserNotFoundException::new);
 		boolean res;
-		if (isAddRole) {
-			res = userAccount.addRole(role);
-		} else {
-			res = userAccount.removeRole(role);
+		try {
+			if (isAddRole) {
+				res = userAccount.addRole(role);
+			} else {
+				res = userAccount.removeRole(role);
+			} 
+		} catch (Exception e) {
+			throw new IncorrectRoleException();
 		}
-		if(res) {
+		if (res) {
 			userAccountRepository.save(userAccount);
 		}
 		return modelMapper.map(userAccount, RolesDto.class);
@@ -75,7 +83,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 	@Override
 	public void changePassword(String login, String newPassword) {
 		UserAccount userAccount = userAccountRepository.findById(login).orElseThrow(UserNotFoundException::new);
-		userAccount.setPassword(newPassword);
+		// generate crypt password
+		String password = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+		userAccount.setPassword(password);
 		userAccountRepository.save(userAccount);
 
 	}
