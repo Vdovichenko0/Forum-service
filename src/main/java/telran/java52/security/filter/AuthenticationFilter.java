@@ -72,7 +72,9 @@ public class AuthenticationFilter implements Filter {
 	// Проверка, требуется ли аутентификация для указанного метода и пути
 	private boolean checkEndpoint(String method, String path) {
 		// Если это не POST запрос на регистрацию, то требуется аутентификация
-		return !(HttpMethod.POST.matches(method) && path.matches("/account/register"));
+		// или поиск поста 
+		return !((HttpMethod.POST.matches(method) && path.matches("/account/register")) 
+				|| path.matches("/forum/posts/\\w+(/\\w+)?"));
 	}
 
 	// Извлечение учетных данных из заголовка Authorization
