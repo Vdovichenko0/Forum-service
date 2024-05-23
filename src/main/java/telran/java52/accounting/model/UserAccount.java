@@ -27,19 +27,19 @@ public class UserAccount {
 		roles.add(Role.USER);
 	}
 
-	public UserAccount(String firstName, String lastName, String password) {
-		this();//call deflt constructor 
+	public UserAccount(String login, String firstName, String lastName, String password) {
+		this();//call def contructor
+		this.login = login;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.password = password;
 	}
-	
-	public boolean addRole(String role){
+
+	public boolean addRole(String role) {
 		return roles.add(Role.valueOf(role.toUpperCase()));
 	}
-	
-	public boolean removeRole(String role){
+
+	public boolean removeRole(String role) {
 		return roles.remove(Role.valueOf(role.toUpperCase()));
 	}
-
 }
