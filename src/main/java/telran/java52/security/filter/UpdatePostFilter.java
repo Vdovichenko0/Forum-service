@@ -1,6 +1,7 @@
 package telran.java52.security.filter;
 
 import java.io.IOException;
+import java.security.Principal;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
@@ -14,9 +15,9 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import telran.java52.accounting.dao.UserAccountRepository;
 import telran.java52.post.dao.PostRepository;
 import telran.java52.post.model.Post;
+import telran.java52.security.model.User;
 
 @Component
 @RequiredArgsConstructor
@@ -33,15 +34,20 @@ public class UpdatePostFilter implements Filter {
 
 		// Проверка, если запрос совпадает с определенными путями
 		if (checkEndpoint(request.getMethod(), request.getServletPath())) {
-			String principal = request.getUserPrincipal().getName(); // Получаем имя пользователя из Principal
+//			String principal = request.getUserPrincipal().getName(); // Получаем имя пользователя из Principal
+			Principal principal = request.getUserPrincipal();
+			User user = (User) principal; // Преобразуем Principal в User
+			String author = user.getName(); // Извлекаем имя пользователя
+
 			String[] parts = request.getServletPath().split("/");
 			String postId = parts[parts.length - 1];
 			Post post = postRepository.findById(postId).orElse(null);
+
 			if (post == null) {
 				response.sendError(404, "Post not found");
 				return;
 			}
-			if (!principal.equals(post.getAuthor())) {
+			if (!author.equals(post.getAuthor())) {
 				response.sendError(403, "Not have permission");
 				return;
 			}

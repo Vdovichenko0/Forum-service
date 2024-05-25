@@ -3,6 +3,8 @@ package telran.java52.security.filter;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Base64;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.core.annotation.Order;
@@ -19,7 +21,9 @@ import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import telran.java52.accounting.dao.UserAccountRepository;
+import telran.java52.accounting.model.Role;
 import telran.java52.accounting.model.UserAccount;
+import telran.java52.security.model.User;
 
 @Component
 @RequiredArgsConstructor
@@ -57,7 +61,11 @@ public class AuthenticationFilter implements Filter {
 				}
 
 				// Оборачивание запроса для установки пользовательского Principal
-				request = new WrappedRequest(request, userAccount.getLogin());
+				Set<String> roles = userAccount.getRoles().stream()
+													.map(Role::name)
+													.collect(Collectors.toSet());
+				request = new WrappedRequest(request, userAccount.getLogin(), roles);
+				
 			} catch (Exception e) {
 				// Если проверка не прошла, отправляем ошибку 401
 				response.sendError(401);
@@ -90,16 +98,16 @@ public class AuthenticationFilter implements Filter {
 	// Класс для оборачивания запроса и предоставления пользовательского Principal
 	private class WrappedRequest extends HttpServletRequestWrapper {
 		private String login;
-
-		public WrappedRequest(HttpServletRequest request, String login) {
+		private Set<String> roles;
+		public WrappedRequest(HttpServletRequest request, String login,Set<String> roles) {
 			super(request);
 			this.login = login;
+			this.roles = roles;
 		}
 
 		@Override
 		public Principal getUserPrincipal() {
-			// Возвращаем пользовательский Principal
-			return () -> login;
+			return new User(login, roles);
 		}
 	}
 }
