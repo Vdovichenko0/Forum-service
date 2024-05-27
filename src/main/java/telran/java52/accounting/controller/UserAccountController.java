@@ -37,8 +37,7 @@ public class UserAccountController {
 	public UserDto login(Principal principal) {
 	return userAccountService.getUser(principal.getName());
 	}
-	
-	//TODO don't testing
+
 	@GetMapping("/user/{login}")
 	public UserDto getUser(@PathVariable String login) {
 	return userAccountService.getUser(login);
