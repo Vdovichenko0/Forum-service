@@ -1,8 +1,6 @@
 package telran.java52.security.filter;
 
 import java.io.IOException;
-import java.security.Principal;
-import java.util.Set;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
@@ -15,11 +13,10 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import telran.java52.accounting.model.Role;
 import telran.java52.security.model.User;
 
 @Component
-@RequiredArgsConstructor
 @Order(40)
 public class DeleteUserFilter implements Filter {
 
@@ -30,16 +27,10 @@ public class DeleteUserFilter implements Filter {
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) resp;
 		if (checkEndpoint(request.getMethod(), request.getServletPath())) {
-//			String principal = request.getUserPrincipal().getName();
-//            UserAccount userAccount = userAccountRepository.findById(principal).get();
-
-			Principal principal = request.getUserPrincipal();
-			User user = (User) principal; // Преобразуем Principal в User
-			String userName = user.getName(); // Извлекаем имя пользователя
-			Set<String> roles = user.getRoles(); // Извлекаем роли пользователя
+			User user = (User) request.getUserPrincipal();
 			String[] arr = request.getServletPath().split("/");
 			String owner = arr[arr.length - 1];
-			if (!(roles.contains("ADMINISTRATOR") || userName.equalsIgnoreCase(owner))) {
+			if (!(user.getRoles().contains(Role.ADMINISTRATOR.name()) || user.getName().equalsIgnoreCase(owner))) {
 				response.sendError(403, "Permission denied");
 				return;
 			}
