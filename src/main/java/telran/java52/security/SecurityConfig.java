@@ -9,12 +9,14 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
 
+import lombok.RequiredArgsConstructor;
 import telran.java52.accounting.model.Role;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
-
+	
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.httpBasic(Customizer.withDefaults());
@@ -25,26 +27,34 @@ public class SecurityConfig {
 				// выстраиваем цепочку
 				// по этому запросу есть доступ
 				// так же все после /forum/posts
-				.requestMatchers("/account/register", "/forum/posts/**")
-				.permitAll()
-				//тут не нужно добавлять ROLE_ spring сам знает и сам добавляет
-				//доступ только у админа
-				.requestMatchers("/account/user/{login}/role/{role}")
-				.hasRole(Role.ADMINISTRATOR.name())
-				//какой метод какой эндпоинт
-				//забираем данные с адресной строки
-				//разрешаем только владельцу
+				.requestMatchers("/account/register", "/forum/posts/**").permitAll()
+				// тут не нужно добавлять ROLE_ spring сам знает и сам добавляет
+				// доступ только у админа
+				.requestMatchers("/account/user/{login}/role/{role}").hasRole(Role.ADMINISTRATOR.name())
+				// какой метод какой эндпоинт
+				// забираем данные с адресной строки
+				// разрешаем только владельцу
 				.requestMatchers(HttpMethod.PUT, "/account/user/{login}")
-				.access(new WebExpressionAuthorizationManager("#login == authentication.name"))
-				//удаление юзера доступ=владелец+админ
+					.access(new WebExpressionAuthorizationManager("#login == authentication.name"))
+				// удаление юзера доступ=владелец+админ
 				.requestMatchers(HttpMethod.DELETE, "/account/user/{login}")
-				.access(new WebExpressionAuthorizationManager("#login == authentication.name or hasRole('ADMINISTRATOR')"))					
-					
+				.access(new WebExpressionAuthorizationManager(
+						"#login == authentication.name or hasRole('ADMINISTRATOR')"))
+				// TODO
+					//add post
+				.requestMatchers(HttpMethod.POST, "/forum/post/{author}")
+					.access(new WebExpressionAuthorizationManager("#author == authentication.name"))
+					//add comment 
+				.requestMatchers(HttpMethod.PUT, "/forum/post/{id}/comment/{author}")
+					.access(new WebExpressionAuthorizationManager("#author == authentication.name"))
+									// test
+                    
+                    
+                    
 				.anyRequest().authenticated()// все запросы только аутен
 //				.anyRequest().permitAll()//все запросы доступны
-
 		);
-		
+
 //		http.addFilter(filter); можно добавлять свои фильтры
 		return http.build();
 	}
