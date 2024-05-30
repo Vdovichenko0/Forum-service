@@ -3,12 +3,12 @@ package telran.java52.security;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
-
 import lombok.RequiredArgsConstructor;
 import telran.java52.accounting.model.Role;
 
@@ -16,6 +16,7 @@ import telran.java52.accounting.model.Role;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+	final CustomWebSecurity webSecurity;
 	
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -23,6 +24,9 @@ public class SecurityConfig {
 		// add option for not only GET
 		// cross site request forgery
 		http.csrf(csrf -> csrf.disable());
+		//по деф стэйтлес, сейчас мы включили и есть аутен по сессии 
+		//обычно передаем токент или basic так что отключаем
+//		http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS));
 		http.authorizeHttpRequests(authorize -> authorize
 				// выстраиваем цепочку
 				// по этому запросу есть доступ
@@ -40,17 +44,31 @@ public class SecurityConfig {
 				.requestMatchers(HttpMethod.DELETE, "/account/user/{login}")
 				.access(new WebExpressionAuthorizationManager(
 						"#login == authentication.name or hasRole('ADMINISTRATOR')"))
-				// TODO
 					//add post
 				.requestMatchers(HttpMethod.POST, "/forum/post/{author}")
 					.access(new WebExpressionAuthorizationManager("#author == authentication.name"))
 					//add comment 
 				.requestMatchers(HttpMethod.PUT, "/forum/post/{id}/comment/{author}")
 					.access(new WebExpressionAuthorizationManager("#author == authentication.name"))
-									// test
-                    
-                    
-                    
+						//updatePost
+				//по деф у нас бин и пишем @ с мал буквы или если указали value @Service("webService") старый способ 
+				//внизу новый 
+				//boolean не может быть bean 
+				//userName = authentication.name
+				//getVariables - map 
+				.requestMatchers(HttpMethod.PUT, "/forum/post/{id}")
+					.access((authentication, context) 
+							-> new AuthorizationDecision(webSecurity.checkPostAuthor
+									(context.getVariables().get("id"), authentication.get().getName())))
+						//delete post
+				//collection - getAuthorities
+				.requestMatchers(HttpMethod.DELETE, "/forum/post/{id}")
+					.access((authentication, context)-> {
+						boolean checkAuthor = webSecurity.checkPostAuthor(context.getVariables().get("id"), authentication.get().getName());
+						boolean checkModerator =  context.getRequest().isUserInRole("MODERATOR");
+						return new AuthorizationDecision(checkAuthor || checkAuthor);
+					})
+							
 				.anyRequest().authenticated()// все запросы только аутен
 //				.anyRequest().permitAll()//все запросы доступны
 		);
